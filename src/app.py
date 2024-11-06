@@ -37,7 +37,8 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    today = datetime.now().date()
+    today = datetime.now().date().isoformat()  # Convert today to ISO format (YYYY-MM-DD)
+    created_at = message.created_at.isoformat()  # Convert message created_at to ISO format (YYYY-MM-DD HH:MM:SS)
 
     # Update daily activity
     c.execute("""
@@ -53,7 +54,8 @@ async def on_message(message):
         VALUES (?, ?, ?, 1)
         ON CONFLICT(user_id) 
         DO UPDATE SET message_count = message_count + 1;
-    """, (message.author.id, message.author.name, message.created_at))
+    """, (message.author.id, message.author.name, created_at))  # Pass the ISO format of created_at
+
     conn.commit()
 
     print(f"{message.author}: {message.content} in {message.channel} at {message.created_at}")

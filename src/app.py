@@ -4,7 +4,7 @@ import sqlite3
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import os
-from helper import *
+from helper import create_tables
 
 # Discord-Bot initialisieren
 intents = discord.Intents.default()
@@ -135,9 +135,6 @@ async def on_presence_update(before, after):
 
     conn.commit()
     conn.close()
-
-from datetime import datetime, timedelta
-import sqlite3
 
 @tasks.loop(hours=24)
 async def daily_update():

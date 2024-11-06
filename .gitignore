@@ -1,1 +1,4 @@
 venv
+.env
+user_activity.db
+__pycache__

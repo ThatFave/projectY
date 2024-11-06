@@ -22,6 +22,8 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # init db
 create_tables()
+conn = sqlite3.connect("user_activity.db")
+c = conn.cursor()
 
 # Zwischenspeicher für laufende Aktivitäten
 user_activities = {}
@@ -30,15 +32,12 @@ user_voice_states = {}
 # Event: Nachricht gesendet
 @bot.event
 async def on_message(message):
-    # Verbindung zur SQLite-Datenbank herstellen
-    conn = sqlite3.connect("user_activity.db")
-    c = conn.cursor()
-
     if message.author == bot.user:
         return
 
     today = datetime.now().date().isoformat()  # Convert today to ISO format (YYYY-MM-DD)
     created_at = message.created_at.isoformat()  # Convert message created_at to ISO format (YYYY-MM-DD HH:MM:SS)
+    now = datetime.now().isoformat()
 
     # Update daily activity
     c.execute("""
@@ -56,6 +55,12 @@ async def on_message(message):
         DO UPDATE SET message_count = message_count + 1;
     """, (message.author.id, message.author.name, created_at))  # Pass the ISO format of created_at
 
+    # Update activity log
+    c.execute("""
+        INSERT INTO activity_log (user_id, username, timestamp, activity_type, activity_details)
+        VALUES (?, ?, ?, 'Message', NULL)
+    """, (message.author.id,  message.author.name, now))
+
     conn.commit()
 
     print(f"{message.author}: {message.content} in {message.channel} at {message.created_at}")
@@ -65,10 +70,6 @@ async def on_message(message):
 # Event: Voice-State-Änderung
 @bot.event
 async def on_voice_state_update(member, before, after):
-    # Verbindung zur SQLite-Datenbank herstellen
-    conn = sqlite3.connect("user_activity.db")
-    c = conn.cursor()
-
     voice_times = {}
     current_time = datetime.now()
 
@@ -82,11 +83,8 @@ async def on_voice_state_update(member, before, after):
             c.execute("BEGIN; UPDATE activity SET voice_time = voice_time + ? WHERE user_id = ?; COMMIT;", (time_spent, member.id))
             conn.commit()
 
-# Hintergrund-Task: Spiel-Tracking aktualisieren
 @bot.event
 async def on_presence_update(before, after):
-    conn = sqlite3.connect("user_activity.db")
-    c = conn.cursor()
     user_id = after.id
     username = after.name
     timestamp = datetime.now().isoformat()  # Convert datetime to ISO format
@@ -109,7 +107,7 @@ async def on_presence_update(before, after):
                     INSERT INTO activity_log (user_id, username, timestamp, activity_type, activity_details)
                     VALUES (?, ?, ?, 'Game Started', ?)
                 """, (user_id, username, timestamp, game_name))
-                print(f"{username} started playing {game_name}")
+                print(f"{username} started playing {game_name} at {timestamp}")
 
             elif after.activity.type == discord.ActivityType.listening and after.activity.name == 'Spotify':
                 # Extract details about the Spotify activity
@@ -122,7 +120,7 @@ async def on_presence_update(before, after):
                     INSERT INTO activity_log (user_id, username, timestamp, activity_type, activity_details, artist_name, track_id)
                     VALUES (?, ?, ?, 'Spotify Song Started', ?, ?, ?)
                 """, (user_id, username, timestamp, song_name, artist_name, track_id))
-                print(f"{username} is listening to {song_name} by {artist_name} (Track ID: {track_id})")
+                print(f"{username} is listening to {song_name} by {artist_name} (Track ID: {track_id}, startet at {timestamp})")
 
         else:
             # User stopped an activity
@@ -134,16 +132,10 @@ async def on_presence_update(before, after):
                     VALUES (?, ?, ?, 'Game Stopped', ?)
                 """, (user_id, username, timestamp, game_name))
                 print(f"{username} stopped playing {game_name}")
-
     conn.commit()
-    conn.close()
 
 @tasks.loop(hours=24)
 async def daily_update():
-    # Verbindung zur SQLite-Datenbank herstellen
-    conn = sqlite3.connect("user_activity.db")
-    c = conn.cursor()
-
     # Use ISO format for the date
     today = datetime.now().date().isoformat()  # Convert the date to a string format
     for guild in bot.guilds:
@@ -158,10 +150,6 @@ async def daily_update():
 
 @tasks.loop(hours=168)  # Wöchentlich
 async def weekly_update():
-    # Verbindung zur SQLite-Datenbank herstellen
-    conn = sqlite3.connect("user_activity.db")
-    c = conn.cursor()
-
     # Calculate the start of the week and convert to ISO format
     week_start = (datetime.now().date() - timedelta(days=datetime.now().weekday())).isoformat()  # Monday of this week
     for guild in bot.guilds:
@@ -178,10 +166,6 @@ async def weekly_update():
 @bot.command(name="reset")
 @commands.has_permissions(administrator=True)
 async def reset_activity(ctx, member: discord.Member):
-    # Verbindung zur SQLite-Datenbank herstellen
-    conn = sqlite3.connect("user_activity.db")
-    c = conn.cursor()
-
     c.execute("BEGIN; DELETE FROM activity WHERE user_id = ?; COMMIT;", (member.id,))
     conn.commit()
     await ctx.send(f"Aktivitätsdaten von {member.name} wurden zurückgesetzt.")
@@ -203,4 +187,7 @@ async def on_ready():
     weekly_update.start()
 
 # Bot starten
-bot.run(os.getenv('DISCORD_TOKEN'))
+# bot.run(os.getenv('DISCORD_TOKEN'))
+
+if __name__ == "__main__":
+    bot.run(os.getenv('DISCORD_TOKEN'))

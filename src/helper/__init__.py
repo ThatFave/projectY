@@ -26,7 +26,7 @@ def create_tables():
     c.execute("""
     CREATE TABLE IF NOT EXISTS daily_weekly_trends (
         user_id INTEGER PRIMARY KEY,
-        date DATE NOT NULL,
+        date DATE NOT NULL UNIQUE,
         username TEXT NOT NULL,
         messages INTEGER DEFAULT 0,
         voice_time INTEGER DEFAULT 0,

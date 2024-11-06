@@ -43,7 +43,7 @@ async def on_message(message):
     c.execute("""
         INSERT INTO daily_weekly_trends (date, user_id, username, messages, voice_time, game_time, skipped_songs, abrupt_games, type)
         VALUES (?, ?, ?, 1, 0, 0, 0, 0, 'daily')
-        ON CONFLICT(date, user_id, type)
+        ON CONFLICT(date, user_id)
         DO UPDATE SET messages = messages + 1;
     """, (today, message.author.id, message.author.name))
 

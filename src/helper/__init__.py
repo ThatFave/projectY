@@ -25,9 +25,8 @@ def create_tables():
     # Tabelle für Tages- und Wochentrends
     c.execute("""
     CREATE TABLE IF NOT EXISTS daily_weekly_trends (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER PRIMARY KEY,
         date DATE NOT NULL,
-        user_id INTEGER NOT NULL,
         username TEXT NOT NULL,
         messages INTEGER DEFAULT 0,
         voice_time INTEGER DEFAULT 0,
@@ -41,7 +40,7 @@ def create_tables():
     # table for history log
     c.execute("""
         CREATE TABLE IF NOT EXISTS activity_log (
-            log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             username TEXT NOT NULL,
             timestamp TIMESTAMP NOT NULL,

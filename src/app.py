@@ -80,7 +80,7 @@ async def on_voice_state_update(member, before, after):
         if join_time:
             time_spent = current_time - join_time
             print(f'{member.name} spent {time_spent} in {before.channel}')
-            c.execute("BEGIN; UPDATE activity SET voice_time = voice_time + ? WHERE user_id = ?; COMMIT;", (time_spent, member.id))
+            c.execute("UPDATE activity SET voice_time = voice_time + ? WHERE user_id = ?;", (time_spent, member.id))
             conn.commit()
 
 @bot.event
@@ -93,7 +93,7 @@ async def on_presence_update(before, after):
     c.execute("""
         INSERT INTO activity (user_id, username, join_date)
         VALUES (?, ?, ?)
-        ON CONFLICT(user_id) DO NOTHING
+        ON CONFLICT(user_id) DO NOTHING;
     """, (user_id, username, timestamp))
     conn.commit()
 

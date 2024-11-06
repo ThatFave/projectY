@@ -7,34 +7,36 @@ def create_tables():
 
     # Haupttabelle für Benutzerdaten
     c.execute("""
-    CREATE TABLE IF NOT EXISTS activity (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER UNIQUE,
-        username TEXT NOT NULL,
-        join_date TIMESTAMP NOT NULL,
-        message_count INTEGER DEFAULT 0,
-        voice_time INTEGER DEFAULT 0,
-        last_spotify_song TEXT,
-        last_game_played TEXT,
-        skipped_song_count INTEGER DEFAULT 0,
-        abrupt_game_end_count INTEGER DEFAULT 0,
-        total_game_time INTEGER DEFAULT 0
-    )
+        CREATE TABLE IF NOT EXISTS activity (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER UNIQUE,
+            username TEXT NOT NULL,
+            join_date TIMESTAMP NOT NULL,
+            message_count INTEGER DEFAULT 0,
+            voice_time INTEGER DEFAULT 0,
+            last_spotify_song TEXT,
+            last_game_played TEXT,
+            skipped_song_count INTEGER DEFAULT 0,
+            abrupt_game_end_count INTEGER DEFAULT 0,
+            total_game_time INTEGER DEFAULT 0
+        )
     """)
 
     # Tabelle für Tages- und Wochentrends
     c.execute("""
-    CREATE TABLE IF NOT EXISTS daily_weekly_trends (
-        user_id INTEGER PRIMARY KEY,
-        date DATE NOT NULL UNIQUE,
-        username TEXT NOT NULL,
-        messages INTEGER DEFAULT 0,
-        voice_time INTEGER DEFAULT 0,
-        game_time INTEGER DEFAULT 0,
-        skipped_songs INTEGER DEFAULT 0,
-        abrupt_games INTEGER DEFAULT 0,
-        type TEXT CHECK(type IN ('daily', 'weekly'))
-    )
+        CREATE TABLE IF NOT EXISTS daily_weekly_trends (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            date DATE NOT NULL,
+            username TEXT NOT NULL,
+            messages INTEGER DEFAULT 0,
+            voice_time INTEGER DEFAULT 0,
+            game_time INTEGER DEFAULT 0,
+            skipped_songs INTEGER DEFAULT 0,
+            abrupt_games INTEGER DEFAULT 0,
+            type TEXT CHECK(type IN ('daily', 'weekly')),
+            UNIQUE(date, user_id, type)  -- Composite unique constraint
+        )
     """)
 
     # table for history log

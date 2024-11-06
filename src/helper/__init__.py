@@ -9,7 +9,7 @@ def create_tables():
     c.execute("""
     CREATE TABLE IF NOT EXISTS activity (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
+        user_id INTEGER UNIQUE,
         username TEXT NOT NULL,
         join_date TIMESTAMP NOT NULL,
         message_count INTEGER DEFAULT 0,

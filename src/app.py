@@ -141,11 +141,11 @@ async def daily_update():
     for guild in bot.guilds:
         for member in guild.members:
             c.execute("""
-                INSERT INTO daily_weekly_trends (date, user_id, messages, voice_time, game_time, skipped_songs, abrupt_games, type)
-                SELECT ?, user_id, message_count, voice_time, total_game_time, skipped_song_count, abrupt_game_end_count, 'daily'
+                INSERT INTO daily_weekly_trends (date, user_id, username, messages, voice_time, game_time, skipped_songs, abrupt_games, type)
+                SELECT ?, user_id, ?, message_count, voice_time, total_game_time, skipped_song_count, abrupt_game_end_count, 'daily'
                 FROM activity
                 WHERE user_id = ?;
-            """, (today, member.id))
+            """, (today, member.id, member.name))
             conn.commit()
 
 @tasks.loop(hours=168)  # Wöchentlich
@@ -155,11 +155,11 @@ async def weekly_update():
     for guild in bot.guilds:
         for member in guild.members:
             c.execute("""
-                INSERT INTO daily_weekly_trends (date, user_id, messages, voice_time, game_time, skipped_songs, abrupt_games, type)
-                SELECT ?, user_id, message_count, voice_time, total_game_time, skipped_song_count, abrupt_game_end_count, 'weekly'
+                INSERT INTO daily_weekly_trends (date, user_id, username, messages, voice_time, game_time, skipped_songs, abrupt_games, type)
+                SELECT ?, user_id, ?, message_count, voice_time, total_game_time, skipped_song_count, abrupt_game_end_count, 'weekly'
                 FROM activity
                 WHERE user_id = ?;
-            """, (week_start, member.id))
+            """, (week_start, member.id, member.name))
             conn.commit()
 
 # Command: Aktivitätsdaten zurücksetzen (nur für Admins)
